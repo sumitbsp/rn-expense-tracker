@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "354478286752",
+    "firebase_url": "https://expense-tracker-sumit.firebaseio.com",
+    "project_id": "expense-tracker-sumit",
+    "storage_bucket": "expense-tracker-sumit.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:354478286752:android:905f3b1fd8d5f11626a6c5",
+        "android_client_info": {
+          "package_name": "com.expense.tracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "354478286752-1kea1jb276tl5nslcv2g94kpmih4bopj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.expense.tracker",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "354478286752-si7cadifsi9lknk2lcv5fgj2an006sav.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBM8YdxanWx_W2kFTRL9clNDT4RcnBAFD0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "354478286752-si7cadifsi9lknk2lcv5fgj2an006sav.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
