@@ -1,10 +1,10 @@
-import {StyleSheet, Dimensions} from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 
-const {width, height} = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
   totalExContainer: {
-    height: height / 6,
+    height: height / 7,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#293241',

@@ -1,14 +1,14 @@
-import React, {useState, useEffect} from 'react';
-import {Text, View, Button} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Text, View, Button } from 'react-native';
 import {
   GoogleSignin,
   GoogleSigninButton,
 } from '@react-native-community/google-signin';
 import auth from '@react-native-firebase/auth';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import {styles} from './styles';
+import { styles } from './styles';
 
-export default function LoginComponent({navigation}) {
+export default function LoginComponent({ navigation }) {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState();
 
@@ -26,7 +26,7 @@ export default function LoginComponent({navigation}) {
 
   async function onGoogleButtonPress() {
     // Get the users ID token
-    const {idToken} = await GoogleSignin.signIn();
+    const { idToken } = await GoogleSignin.signIn();
     // Create a Google credential with the token
     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
     // Sign-in the user with the credential
@@ -40,7 +40,7 @@ export default function LoginComponent({navigation}) {
 
   useEffect(() => {
     if (user) {
-      navigation.navigate('Home', {user: user.displayName, email: user.email});
+      navigation.navigate('Home', { user: user.displayName, email: user.email });
     }
   }, [user]);
 
@@ -60,25 +60,30 @@ export default function LoginComponent({navigation}) {
   };
 
   return (
-    <View style={styles.LoginScreenContainer}>
-      <View style={styles.logoContainer}>
-        <Icon name="money-check" size={34} color="#fff" />
-        <Text style={styles.welcomeText}>Expense Tracker</Text>
-      </View>
-      <Text style={styles.continueWithGoogle}>
-        Continue with Google to sync your data
+    <View style={{ backgroundColor: '#344250', flex: 1 }}>
+      {
+        !user && (
+          <View style={styles.LoginScreenContainer}>
+            <View style={styles.logoContainer}>
+              <Icon name="money-check" size={34} color="#fff" />
+              <Text style={styles.welcomeText}>Expense Tracker</Text>
+            </View>
+            <Text style={styles.continueWithGoogle}>
+              Continue with Google to sync your data
       </Text>
-      <GoogleSigninButton
-        color={GoogleSigninButton.Color.Dark}
-        size={GoogleSigninButton.Size.Wide}
-        onPress={() =>
-          onGoogleButtonPress()
-            .then(() => console.log('Signed in with Google!'))
-            .catch((error) => {
-              console.log('Some error', error);
-            })
-        }
-      />
-    </View>
-  );
+            <GoogleSigninButton
+              color={GoogleSigninButton.Color.Dark}
+              size={GoogleSigninButton.Size.Wide}
+              onPress={() =>
+                onGoogleButtonPress()
+                  .then(() => console.log('Signed in with Google!'))
+                  .catch((error) => {
+                    console.log('Some error', error);
+                  })
+              }
+            />
+          </View>
+        )
+      }
+    </View>);
 }

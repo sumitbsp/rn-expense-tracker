@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Text,
   View,
@@ -7,15 +7,19 @@ import {
   StatusBar,
   Alert,
 } from 'react-native';
-import {useSelector, useDispatch, RootStateOrAny} from 'react-redux';
-import {styles} from './styles';
+import { useSelector, useDispatch, RootStateOrAny } from 'react-redux';
+import { styles } from './styles';
 import ModalComponent from '../../shared/components/Modal/ModalComponent';
 import FormComponent from '../../shared/components/Form/FormComponent';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import analytics from '@react-native-firebase/analytics';
+// import analytics from '@react-native-firebase/analytics';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import { loadData } from '../../redux/action';
+import { ScrollView } from 'react-native-gesture-handler';
+import moment from 'moment';
 
-export default function Home({navigation, route}): JSX.Element {
+export default function Home({ navigation, route }): JSX.Element {
   const signOut = () => {
     auth()
       .signOut()
@@ -25,7 +29,8 @@ export default function Home({navigation, route}): JSX.Element {
       });
   };
 
-  useEffect(() => {});
+  const date = new Date();
+  const currMonth = date.getMonth();
 
   const [index, setIndex] = useState(0);
   const [expense, setExpense] = useState({});
@@ -39,13 +44,15 @@ export default function Home({navigation, route}): JSX.Element {
     return state.expenses.expenseArray;
   });
 
-  console.log(expenses);
+  useEffect(() => {
+    console.log('expenses: ', expenses);
+
+  })
 
   const state = useSelector((state: RootStateOrAny) => state);
-  // console.log(state);
 
   const totalExpense = useSelector(
-    (state: RootStateOrAny) => state.expenses.totalExpense,
+    (state: RootStateOrAny) => state.expenses.totalExpense
   );
 
   const newExpense = {
@@ -65,13 +72,45 @@ export default function Home({navigation, route}): JSX.Element {
     setAddExpenseModal(true);
   };
 
-  // const openEditExpenseModal = () => {
-  //   setEditExpenseModal(true);
-  // };
-
   const setModalVisibility = (visibility: boolean) => {
     setAddExpenseModal(visibility);
   };
+
+  const [dataState, setDataState] = useState([])
+
+  const dataFromFS: object[] = [];
+  const month = moment().format('MMMM').toLowerCase();
+  const { email } = route.params
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        await firestore()
+          .collection('users')
+          .doc(email)
+          .collection(month)
+          .get()
+          .then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+              dataFromFS.push(doc.data());
+              console.log('data from fs: ', doc.data());
+
+            });
+          }).catch(error => {
+            console.log(error);
+          });
+        // console.log('fs data', dataFromFS);
+
+        dispatch({
+          type: 'LOAD_FROM_FIRESTORE',
+          payload: dataFromFS,
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getData();
+  }, []);
 
   // const setEditModalVisibility = (visibility: boolean) => {
   //   setEditExpenseModal(visibility);
@@ -81,18 +120,36 @@ export default function Home({navigation, route}): JSX.Element {
     dispatch({
       type: 'RESET',
     });
+    firestore()
+      .collection('users')
+      .doc(email)
+      .collection(month)
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          doc.ref.delete()
+        });
+      })
   };
 
-  const deleteExpense = (i: number): void => {
+  const deleteExpense = (i: string): void => {
     dispatch({
       type: 'DELETE_EXPENSE',
       payload: i,
     });
+    firestore().
+      collection('users')
+      .doc(email)
+      .collection(month)
+      .doc(i).delete()
+      .then(() => {
+        console.log('Deleted doc successfully')
+      })
   };
 
   const setEditExpenseModal = (
     index: number,
-    expense: {expenseAmount: string; expenseDesc: string},
+    expense: { expenseAmount: string; expenseDesc: string }
   ) => {
     setIndex(index);
     setExpense(expense);
@@ -102,10 +159,10 @@ export default function Home({navigation, route}): JSX.Element {
     <View style={{}}>
       <StatusBar backgroundColor="#293241" />
       <View style={styles.userInfoContainer}>
-        <Text style={{color: '#fff'}}>Hi, {route.params.user}</Text>
+        <Text style={{ color: '#fff' }}>Hi, {route.params.user}</Text>
         <TouchableOpacity onPress={signOut}>
           <View style={styles.logOutBtnContainer}>
-            <Text style={{color: '#fff'}}>Log-Out</Text>
+            <Text style={{ color: '#fff' }}>Log-Out</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -119,7 +176,8 @@ export default function Home({navigation, route}): JSX.Element {
         <FormComponent
           setModal={setModalVisibility}
           formValue={expense}
-          index={index}
+          id={expense.id}
+          email={route.params.email}
         />
       </ModalComponent>
 
@@ -129,52 +187,55 @@ export default function Home({navigation, route}): JSX.Element {
           flexDirection: 'row',
           paddingHorizontal: 10,
           justifyContent: 'space-around',
-        }}>
-        <View style={{width: '45%'}}>
+        }}
+      >
+        <View style={{ width: '45%' }}>
           <Button
             color="#ee6c4d"
             title="Add Expense"
             onPress={openAddExpenseModal}
           />
         </View>
-        <View style={{width: '45%'}}>
+        <View style={{ width: '45%' }}>
           <Button color="#52b788" title="Reset" onPress={resetExpenses} />
         </View>
       </View>
 
-      <View style={styles.expenseContainer}>
-        <Text style={{fontSize: 20}}>All Expenses</Text>
+      <ScrollView style={styles.expenseContainer}>
+        <Text style={{ fontSize: 20 }}>All Expenses</Text>
         {expenses.map(
           (
-            expense: {expenseDesc: string; expenseAmount: string},
-            index: number,
+            expense: { expenseDesc: string; expenseAmount: string, id: string }
           ) => {
             return (
               <View
-                key={expense.expenseDesc + expense.expenseAmount}
-                style={styles.individualExpenseContainer}>
+                key={expense.id}
+                style={styles.individualExpenseContainer}
+              >
                 <View style={styles.expenseContainerText}>
                   <Text style={styles.font16}>{expense.expenseDesc}</Text>
                   <Text style={styles.font16}>{expense.expenseAmount}</Text>
                 </View>
                 <View style={styles.expenseBtnContainer}>
                   <TouchableOpacity
-                    style={{width: '50%', backgroundColor: '#f94144'}}
+                    style={{ width: '50%', backgroundColor: '#f94144' }}
                     onPress={() => {
-                      deleteExpense(index);
+                      deleteExpense(expense.id);
                       // console.log(index, 'index of');
-                    }}>
+                    }}
+                  >
                     <View style={styles.expenseBtn}>
                       <Text style={styles.btnText}>Delete</Text>
                       <Icon name="delete-empty" size={18} color="#fff" />
                     </View>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={{backgroundColor: '#277da1', width: '50%'}}
+                    style={{ backgroundColor: '#277da1', width: '50%' }}
                     onPress={() => {
                       setEditExpenseModal(index, expense);
                       openEditExpenseModal();
-                    }}>
+                    }}
+                  >
                     <View style={styles.expenseBtn}>
                       <Text style={styles.btnText}>Edit</Text>
                       <Icon name="square-edit-outline" size={18} color="#fff" />
@@ -183,9 +244,9 @@ export default function Home({navigation, route}): JSX.Element {
                 </View>
               </View>
             );
-          },
+          }
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 }
